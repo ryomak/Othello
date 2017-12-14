@@ -1,3 +1,7 @@
+/*
+MoveのCOM1MoveをPlayerMoveにすると変更できる
+*/
+
 #include <stdio.h>
 #include <string.h>
 #define LEN 8
@@ -303,7 +307,8 @@ void Counter(){
 void Move(){
 	if(offence == 1){
 		if(turn == 1){
-			COM1Move();
+			PlayerMove();
+			//COM1Move();
 		}else{
 			COMMove();
 		}
@@ -311,7 +316,8 @@ void Move(){
 		if(turn == 1){
 			COMMove();
 		}else{
-			COM1Move();
+			PlayerMove();
+			//COM1Move();
 		}
 	}
 }
