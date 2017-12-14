@@ -280,8 +280,8 @@ void COM1Move(){
 	int ans_y;
 	int x,y;
 	int i =0;
-	for(x=0;x<8;x++){
-		for(y=0;y<8;y++){
+	for(x=0;x<LEN;x++){
+		for(y=0;y<LEN;y++){
 			if(Check(Player,x,y)==1){
 					ans_x = x;
 					ans_y = y;
@@ -307,7 +307,7 @@ void COMMove(){
 	Display();
 }
 
-int MinMax(int board[8][8],int flag,int level){
+int MinMax(int board[LEN][LEN],int flag,int level){
 	// ノードの評価値
 	int value;
     // 子ノードから伝播してきた評価値
@@ -318,7 +318,7 @@ int MinMax(int board[8][8],int flag,int level){
 	
 
 	//copy
-	int undo_board[8][8];
+	int undo_board[LEN][LEN];
 	int i;
 
 	if(level==0){
