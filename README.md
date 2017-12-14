@@ -7,8 +7,7 @@ gcc main.c -o othello
 ./othello
 ```
 
-##設定  
-
+## 設定   
 COMはランダムでもない．．．雑実装でごめんなさい  
 Move関数を変更すると，
 
