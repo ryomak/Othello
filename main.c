@@ -23,7 +23,9 @@ int COM ;
 int vec_x[]={-1,0,1,1,1,0,-1,-1};
 int vec_y[]={1,1,1,0,-1,-1,-1,0};
 //minmax search
-int SEARCH_LEVEL = 6;
+int SEARCH_LEVEL = 2;
+//alphabeta search
+int SEARCH_LEVEL1 = 7;
 
 //==============main=====================-=====
 int main(){
@@ -42,8 +44,8 @@ int main(){
 void Move(){
 	if(offence == 1){
 		if(turn == 1){
-			//PlayerMove();
-			COM1Move();
+			PlayerMove();
+			//COM1Move();
 		}else{
 			COMMove();
 		}
@@ -51,8 +53,8 @@ void Move(){
 		if(turn == 1){
 			COMMove();
 		}else{
-			//PlayerMove();
-			COM1Move();
+			PlayerMove();
+			//COM1Move();
 		}
 	}
 }
@@ -60,17 +62,17 @@ void Move(){
 //0...自分の手はある
 //1...相手は出せる
 //2...どちらも出せない
-int Judge(int turn){
+int Judge(int next_turn){
 	int x,y;
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
-			if(Check(turn,x,y) == 1) return 0;
+			if(Check(next_turn,x,y) == 1) return 0;
 		}
 	}
 	//パスしてターン変更した場合
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
-			if(Check(turn*-1,x,y) == 1) return 1;
+			if(Check(next_turn*-1,x,y) == 1) return 1;
 		}
 	}
 	return 2;
@@ -203,39 +205,39 @@ void ShowAnswer(int x,int y){
 }
 
 //===============ひっくり返す仕組み===============
-int Check(int turn,int x,int y){
+int Check(int next_turn,int x,int y){
 	int vec;
 	if(Board[y][x] == 0){
 		for(vec=0;vec<LEN;vec++){
-			if(CheckFlip(turn,x,y,vec) == 1) return 1;
+			if(CheckFlip(next_turn,x,y,vec) == 1) return 1;
 		}
 	}
 	return 0;
 }
-int Put(int turn,int x,int y){
+int Put(int next_turn,int x,int y){
 	int vec,flag=0;
 	if(Board[y][x] != 0) return 0;
 	for(vec=0;vec<LEN;++vec){
-		if(CheckFlip(turn,x,y,vec) == 1){
-			Flip(turn,x,y,vec);
+		if(CheckFlip(next_turn,x,y,vec) == 1){
+			Flip(next_turn,x,y,vec);
 			flag = 1;
 		}
 	}
 	if(flag == 1){
-		Board[y][x] = turn;
+		Board[y][x] = next_turn;
 		return 1;
 	}
 	return 0;
 }
 
-int CheckFlip(int turn,int x,int y,int vec){
+int CheckFlip(int next_turn,int x,int y,int vec){
 	int flag = 0;
 	while(1){
 		y += vec_y[vec];
 		x += vec_x[vec];
 		if( x < 0 || y < 0 || x > 7 || y > 7) return 0;
 		if(Board[y][x] == 0) return 0;
-		if(Board[y][x] == (turn*-1)){
+		if(Board[y][x] == (next_turn*-1)){
 			flag = 1;
 			continue;
 		}
@@ -245,12 +247,12 @@ int CheckFlip(int turn,int x,int y,int vec){
 	return 1;
 }
 
-void Flip(int turn,int x,int y,int vec){
+void Flip(int next_turn,int x,int y,int vec){
 	while(1){
 		y += vec_y[vec];
 		x += vec_x[vec];
-		if(Board[y][x] == turn)break;
-		Board[y][x] = turn;
+		if(Board[y][x] == next_turn)break;
+		Board[y][x] = next_turn;
 	}
 }
 //=========playe===========r============
@@ -280,25 +282,34 @@ void COM1Move(){
 	int ans_y;
 	int x,y;
 	int i =0;
+	int value=-1000;
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
 			if(Check(Player,x,y)==1){
+				if(value<eva_board[y][x]){
 					ans_x = x;
 					ans_y = y;
+					value = eva_board[y][x];
+				}
 			}
 		}
 	}
+	
+	//int val = AlphaBeta(Board,Player,SEARCH_LEVEL1,-1000,1000);
+	//ans_x = val%LEN;
+	//ans_y = val/LEN;
 	Put(Player,ans_x,ans_y);
 	ShowAnswer(ans_x,ans_y);
 	turn = turn*-1;
 	Display();
 }
-//==============ミニマックス法========================
+
 void COMMove(){
 	printf("コンピュータの手 ");
 	int ans_x;
 	int ans_y;
-	int val = MinMax(Board,COM,SEARCH_LEVEL);
+	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-1000,1000);
+	//int val = MinMax(Board,COM,SEARCH_LEVEL);
 	ans_x = val%LEN;
 	ans_y = val/LEN;
 	ShowAnswer(ans_x,ans_y);
@@ -307,6 +318,7 @@ void COMMove(){
 	Display();
 }
 
+//==============ミニマックス法========================
 int MinMax(int board[LEN][LEN],int flag,int level){
 	// ノードの評価値
 	int value;
@@ -374,6 +386,82 @@ int MinMax(int board[LEN][LEN],int flag,int level){
 	}
 	
 }
+
+//===================α-β法============================
+int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
+	// ノードの評価値
+	int value;
+    // 子ノードから伝播してきた評価値
+    int childValue;
+    // 最大の評価値を持つ場所
+    int bestX = -1;
+    int bestY = -1;
+	
+
+	//copy
+	int undo_board[LEN][LEN];
+	int i;
+
+	if(level==0){
+		return Evaluate(board);
+	}
+	//
+	if(flag==Player){
+		value = 1000;
+	}else{
+		value = -1000;
+	}
+	int judge = Judge(flag);
+	int x,y;
+		for(x=0;x<LEN;x++){
+			for(y=0;y<LEN;y++){
+				if(Check(flag,x,y)==1){
+					for(i=0;i<LEN;i++) memcpy( undo_board[i], board[i], sizeof(int)*LEN );
+					Put(flag,x,y);
+					childValue = AlphaBeta(board,flag*-1, level - 1,alpha,beta);
+					if(flag==Player){
+						if (childValue < value) {
+							value = childValue;
+							//beta更新
+							beta = value;
+							bestX = x;
+							bestY = y;
+						}
+						if (value < alpha) {  // αカット
+							// 打つ前に戻す
+                        	for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
+                        	return value;
+                        }
+					}else{
+						if (childValue > value) {
+							value = childValue;
+							alpha = value;
+							bestX = x;
+							bestY = y;
+						}	
+						if (value > beta) {  // βカット
+                            // 打つ前に戻す
+                            for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
+                            return value;
+                        }
+					}
+					for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
+				}
+			}
+		}
+	if (level == SEARCH_LEVEL1) {
+	// ルートノードなら最大評価値を持つ場所を返す
+	//printf("user:%d (x,y)=(%d,%d)\n",flag,bestX,bestY);
+	printf("eva:%d\n",value);
+		return bestX+bestY*LEN;
+	} else {
+		// 子ノードならノードの評価値を返す
+		return value;
+	}
+	
+}
+
+//======================評価関数========================
 int Evaluate(int board[LEN][LEN]){
 	int x,y;
 	int eva=0;
@@ -391,7 +479,7 @@ int Evaluate(int board[LEN][LEN]){
 
 /*
 //こっちは駒の個数をどれだけ多く取るかを計算する
-int Evaluate(int board[LEN][LEN]){
+int NumEvaluate(int board[LEN][LEN]){
 	int x,y;
 	int eva=0;
 	for(x=0;x<LEN;x++){

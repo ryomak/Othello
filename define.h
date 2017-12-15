@@ -20,6 +20,8 @@ int Judge(int);
 void Counter();
 int MinMax(int[LEN][LEN],int,int);
 int Evaluate(int[LEN][LEN]);
+int AlphaBeta(int[LEN][LEN],int,int,int,int);
+void Move();
 
 
 int Board[8][8] = {
