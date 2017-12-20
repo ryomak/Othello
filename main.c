@@ -298,17 +298,22 @@ void COM1Move(){
 	//int val = AlphaBeta(Board,Player,SEARCH_LEVEL1,-1000,1000);
 	//ans_x = val%LEN;
 	//ans_y = val/LEN;
+	if((ans_x == -1) || ans_y == -1){
+		turn = turn*-1;
+	}else{
 	Put(Player,ans_x,ans_y);
 	ShowAnswer(ans_x,ans_y);
 	turn = turn*-1;
 	Display();
+	}
 }
 
 void COMMove(){
 	printf("コンピュータの手 ");
-	int ans_x;
-	int ans_y;
-	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-1000,1000);
+	int ans_x = -1;
+	int ans_y = -1;
+	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-10000,10000);
+	printf("val = %d\n",val);
 	//int val = MinMax(Board,COM,SEARCH_LEVEL);
 	ans_x = val%LEN;
 	ans_y = val/LEN;
@@ -407,11 +412,10 @@ int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
 	}
 	//
 	if(flag==Player){
-		value = 1000;
+		value = 10000;
 	}else{
-		value = -1000;
+		value = -10000;
 	}
-	int judge = Judge(flag);
 	int x,y;
 		for(x=0;x<LEN;x++){
 			for(y=0;y<LEN;y++){
@@ -420,30 +424,35 @@ int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
 					Put(flag,x,y);
 					childValue = AlphaBeta(board,flag*-1, level - 1,alpha,beta);
 					if(flag==Player){
-						if (childValue < value) {
+						if (childValue <= value) {
 							value = childValue;
 							//beta更新
 							beta = value;
 							bestX = x;
 							bestY = y;
 						}
-						if (value < alpha) {  // αカット
-							// 打つ前に戻す
-                        	for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
-                        	return value;
-                        }
+						if(level != SEARCH_LEVEL1){
+							if (value < alpha) {  // αカット
+								// 打つ前に戻す
+								for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
+								return value;
+							}
+						}
 					}else{
-						if (childValue > value) {
+						if(level == SEARCH_LEVEL1)printf("はいた:%d\n",childValue);
+						if (childValue >= value) {
 							value = childValue;
 							alpha = value;
 							bestX = x;
 							bestY = y;
-						}	
-						if (value > beta) {  // βカット
-                            // 打つ前に戻す
-                            for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
-                            return value;
-                        }
+						}
+						if(level != SEARCH_LEVEL1){
+							if (value > beta) {  // βカット
+								// 打つ前に戻す
+								for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
+								return value;
+							}
+						}
 					}
 					for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
 				}
@@ -492,5 +501,21 @@ int NumEvaluate(int board[LEN][LEN]){
 	}else{
 		return -eva;
 	}
+}
+
+*/
+/*
+//こっちは駒の個数をどれだけ多く置けるかを計算する
+int Evaluate(int board[LEN][LEN]){
+	int x,y;
+	int eva=0;
+	for(x=0;x<LEN;x++){
+		for(y=0;y<LEN;y++){
+			if(Check(COM,x,y==1)){
+				eva++;
+			}
+		}
+	}	
+		return eva;
 }
 */
