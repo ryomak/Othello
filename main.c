@@ -25,7 +25,11 @@ int vec_y[]={1,1,1,0,-1,-1,-1,0};
 //minmax search
 int SEARCH_LEVEL = 2;
 //alphabeta search
-int SEARCH_LEVEL1 = 7;
+int SEARCH_LEVEL1 = 8;
+//moveが行われた数
+int move_cnt = 0;
+//weight
+int weight[w_num];
 
 //==============main=====================-=====
 int main(){
@@ -42,10 +46,11 @@ int main(){
 }
 //============ゲームの仕組み=======================
 void Move(){
+	SetWeight(move_cnt);
 	if(offence == 1){
 		if(turn == 1){
-			PlayerMove();
-			//COM1Move();
+			//PlayerMove();
+			COM1Move();
 		}else{
 			COMMove();
 		}
@@ -53,10 +58,11 @@ void Move(){
 		if(turn == 1){
 			COMMove();
 		}else{
-			PlayerMove();
-			//COM1Move();
+			//PlayerMove();
+			COM1Move();
 		}
 	}
+	move_cnt++;
 }
 
 //0...自分の手はある
@@ -313,7 +319,6 @@ void COMMove(){
 	int ans_x = -1;
 	int ans_y = -1;
 	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-10000,10000);
-	printf("val = %d\n",val);
 	//int val = MinMax(Board,COM,SEARCH_LEVEL);
 	ans_x = val%LEN;
 	ans_y = val/LEN;
@@ -401,7 +406,6 @@ int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
     // 最大の評価値を持つ場所
     int bestX = -1;
     int bestY = -1;
-	
 
 	//copy
 	int undo_board[LEN][LEN];
@@ -439,7 +443,6 @@ int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
 							}
 						}
 					}else{
-						if(level == SEARCH_LEVEL1)printf("はいた:%d\n",childValue);
 						if (childValue >= value) {
 							value = childValue;
 							alpha = value;
@@ -460,8 +463,8 @@ int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
 		}
 	if (level == SEARCH_LEVEL1) {
 	// ルートノードなら最大評価値を持つ場所を返す
-	//printf("user:%d (x,y)=(%d,%d)\n",flag,bestX,bestY);
-	printf("eva:%d\n",value);
+		//printf("user:%d (x,y)=(%d,%d)\n",flag,bestX,bestY);
+		printf("eval:%d\n",value);
 		return bestX+bestY*LEN;
 	} else {
 		// 子ノードならノードの評価値を返す
@@ -471,6 +474,7 @@ int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
 }
 
 //======================評価関数========================
+
 int Evaluate(int board[LEN][LEN]){
 	int x,y;
 	int eva=0;
@@ -485,6 +489,7 @@ int Evaluate(int board[LEN][LEN]){
 		return -eva;
 	}
 }
+
 
 /*
 //こっちは駒の個数をどれだけ多く取るかを計算する
@@ -504,18 +509,39 @@ int NumEvaluate(int board[LEN][LEN]){
 }
 
 */
+
 /*
 //こっちは駒の個数をどれだけ多く置けるかを計算する
+//[評価関数][着手可能数][取れる数]
 int Evaluate(int board[LEN][LEN]){
 	int x,y;
-	int eva=0;
+	int eval=0;
+	int can_put = 0;
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
-			if(Check(COM,x,y==1)){
-				eva++;
+			eval += weight[0]*eva_board[y][x]*board[y][x];
+			if(Check(COM,x,y) == 1){
+				eval += weight[1]*COM;
+				can_put++;
 			}
+			if(Check(Player,x,y) == 1)can_put--;
 		}
 	}	
-		return eva;
+	if(COM==1){
+		eval += weight[2]*can_put;
+		return eval;
+	}else{
+		eval -= weight[2]*can_put;
+		return -eval;
+	}
 }
 */
+//重り設定
+void SetWeight(int cnt){
+	switch(cnt){
+		case FIRST: memcpy(weight, w_first,sizeof(int)*w_num);break;
+		case MIDDLE: memcpy(weight, w_middle,sizeof(int)*w_num);break;
+		case FINAL:memcpy(weight, w_final,sizeof(int)*w_num);break;
+		default: break;
+	}
+}

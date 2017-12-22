@@ -22,7 +22,7 @@ int MinMax(int[LEN][LEN],int,int);
 int Evaluate(int[LEN][LEN]);
 int AlphaBeta(int[LEN][LEN],int,int,int,int);
 void Move();
-
+void SetWeight(int);
 
 int Board[8][8] = {
 	{0,0,0,0,0,0,0,0},
