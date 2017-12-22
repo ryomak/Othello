@@ -4,6 +4,7 @@ MoveのCOM1MoveをPlayerMoveにすると変更できる
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "define.h"
 #include "evaluate.h"
 
@@ -25,23 +26,121 @@ int vec_y[]={1,1,1,0,-1,-1,-1,0};
 //minmax search
 int SEARCH_LEVEL = 2;
 //alphabeta search
-int SEARCH_LEVEL1 = 6;
+int SEARCH_LEVEL1 = 4;
 //moveが行われた数
-int move_cnt;
+int move_cnt = 0;
 //weight
-int weight[w_num];
+int weight[w_num]={0,0,0};
 
-//==============main=====================-=====
-int main(){
-	Init();
-	while(available){
-		switch(Judge(turn)){
-		case 0: Move();break;
-		case 1: turn = turn*-1; Move();break;
-		case 2: Counter(); break;
-		default: available = 0;break;
+//[評価関数1~5][着手可能数][取れる数]
+int w_first[w_num]={0,0,0};
+int w_middle[w_num]={0,0,0};
+int w_final[w_num]={0,0,0} ;
+
+//reset board
+int reset[8][8] = {
+	{0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0},
+};
+
+void WriteResult(int val,int* first,int* middle,int* last){
+	FILE *outputfile;         // 出力ストリーム
+  	outputfile = fopen("koko.txt", "a");  // ファイルを書き込み用にオープン(開く)
+  	if (outputfile == NULL) {          // オープンに失敗した場合
+    	printf("cannot open\n");         // エラーメッセージを出して
+    	exit(1);                         // 異常終了
+  	}
+  	fprintf(outputfile, "val:%d,first:{%d,%d,%d},middle:{%d,%d,%d},final:{%d,%d,%d}\n"
+	  ,val,first[0],first[1],first[2],middle[0],middle[1],middle[2],last[0],last[1],last[2]); // ファイルに書く	
+  	fclose(outputfile);          // ファイルをクローズ(閉じる)	
+}
+
+
+//学習
+int Game(int* a,int* b,int* c){
+	int val=0;
+	int i;
+	w_first[0]=a[0];
+	w_first[1]=a[1];
+	w_first[2]=a[2];
+	w_middle[0]=b[0];
+	w_middle[1]=b[1];
+	w_middle[2]=b[2];
+	w_final[0]=c[0];
+	w_final[1]=c[1];
+	w_final[2]=c[2];
+	for(i=0;i<1;i++){
+		Init();
+		while(available){
+			switch(Judge(turn)){
+			case 0: Move();break;
+			case 1: turn = turn*-1; Move();break;
+			case 2: val += Counter(); break;
+			default: available = 0;break;
+		}
 		}
 	}
+	return val;
+}
+
+//==============main=====================-=====
+/*
+int main(){
+	int a,b,c;
+	int d,e,f;
+	int g,h,i;
+	for(a=0;a<3;a++){
+		for(b=0;b<=20;b=b+2){
+			for(c=0;c<=20;c=c+2){	
+					for(d=0;d<2;d++){
+						for(e=0;e<=10;e=e+2){
+							for(f=0;f<=10;f=f+2){
+								for(g=1;g<2;g++){
+									for(h=0;h<=10;h=h+2){
+										for(i=0;i<=10;i=i+2){
+											int fi[w_num]={g,h,i};
+											int mi[w_num]={d,e,f};
+											int la[w_num]={a,b,c};
+											int re = Game(fi,mi,la);
+											WriteResult(re,fi,mi,la);
+										}
+									}
+								}
+							}
+						}
+					}
+				}	
+		}
+	}
+			
+	return 0;
+}
+*/
+
+int main(){
+	int a,b,c;
+	int d,e,f;
+	int g,h,i;
+		for(b=0;b<=6;b=b+2){
+			for(c=0;c<=6;c=c+2){
+						for(e=0;e<=20;e=e+2){
+							for(f=0;f<=20;f=f+2){
+											int fi[w_num]={1,0,3};
+											int mi[w_num]={1,b,c};
+											int la[w_num]={0,e,f};
+											int re = Game(fi,mi,la);
+											WriteResult(re,fi,mi,la);
+							}
+						}
+			}	
+		}
+			
 	return 0;
 }
 //============ゲームの仕組み=======================
@@ -67,9 +166,9 @@ void Move(){
 //1...相手は出せる
 //2...どちらも出せない
 int Judge(int next_turn){
+	int x,y;
 	SetWeight(move_cnt);
 	move_cnt++;
-	int x,y;
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
 			if(Check(next_turn,x,y) == 1) return 0;
@@ -84,8 +183,9 @@ int Judge(int next_turn){
 	return 2;
 }
 
-void Counter(){
-	printf("~~~~\n");
+int Counter(){
+	
+	//printf("~~~~\n");
 	int x,y;
 	int o_point = 0;
 	int x_point = 0;
@@ -98,8 +198,9 @@ void Counter(){
 			}
 		}
 	}
-	printf("o:%d\n",o_point);
-	printf("x:%d\n",x_point);
+	//printf("o:%d\n",o_point);
+	//printf("x:%d\n",x_point);
+	/*
 	if(x_point>o_point){
 		printf("winner: x\n");
 	}else if(x_point == o_point){
@@ -107,11 +208,14 @@ void Counter(){
 	}else{
 		printf("winner: o\n");
 	}
+	*/
 	available = 0;
+	return o_point;
 }
 
 //==================表示=======================
 void Display(){
+	
 	int y,x;
 	printf(" abcdefgh\n");
 	for(y=0;y<LEN;y++){
@@ -133,11 +237,17 @@ void Display(){
 		}
 		printf("\n");
 	}
+	
 }
 
 
 //===========初期化============================
 void Init(){
+	move_cnt=0;
+	int a;
+	int b[w_num]={0,0,0};
+	for(a=0;a<LEN;a++)memcpy(Board[a],reset[a],sizeof(int)*LEN);
+	memcpy(weight,b,sizeof(int)*w_num);
 	DecideTurn();
 	available = 1;
 	//o
@@ -146,31 +256,21 @@ void Init(){
 	//x
 	Board[4][3] = 1;
 	Board[3][4] = 1;
-	Display();
+	//Display();
 }
 
 void DecideTurn(){
-	char c;
-	move_cnt = 0; 
-	printf("先行(x)か後攻(o)か選んでください \n");
-	while(1){
-		scanf("%c",&c);
-		if ((c == 'x') || (c == 'o')){
-			break;
-		}else{
-			printf("先行(x)か後攻(o)か選んでください \n");
-
-		}
-	}
-	if (c == 'x'){
+	/*if (c == 'x'){
 		offence = 1;
 		Player = 1;
 		COM = -1;
-	}else{
+	}else{*/
 		offence = 2;
 		Player = -1;
 		COM = 1;
-	}
+	//}
+	
+	
 }
 
 //=================ヘルパー===============
@@ -197,7 +297,7 @@ void Locate(char* str,int* x,int* y){
 }
 
 void ShowAnswer(int x,int y){
-	printf("%d,",y+1);
+	/*printf("%d,",y+1);
 	switch(x){
 		case 0:printf("a"); break;
 		case 1:printf("b"); break;
@@ -209,6 +309,7 @@ void ShowAnswer(int x,int y){
 		case 7:printf("h"); break;
 	}
 	printf("\n");
+	*/
 }
 
 //===============ひっくり返す仕組み===============
@@ -278,13 +379,13 @@ void PlayerMove(){
 		}
 	}
 	turn = turn*-1;
-	Display();
+	//Display();
 }
 
 //======COMPUTER===========================
 //最弱
 void COM1Move(){
-	printf("コンピュータ1の手 ");
+	//printf("コンピュータ1の手 ");
 	int ans_x;
 	int ans_y;
 	int x,y;
@@ -311,12 +412,12 @@ void COM1Move(){
 	Put(Player,ans_x,ans_y);
 	ShowAnswer(ans_x,ans_y);
 	turn = turn*-1;
-	Display();
+	//Display();
 	}
 }
 
 void COMMove(){
-	printf("コンピュータの手 ");
+	//printf("コンピュータの手 ");
 	int ans_x = -1;
 	int ans_y = -1;
 	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-10000,10000);
@@ -326,7 +427,7 @@ void COMMove(){
 	ShowAnswer(ans_x,ans_y);
 	Put(COM,ans_x,ans_y);	
 	turn = turn*-1;
-	Display();
+	//Display();
 }
 
 //==============ミニマックス法========================
@@ -389,7 +490,7 @@ int MinMax(int board[LEN][LEN],int flag,int level){
 	if (level == SEARCH_LEVEL) {
 	// ルートノードなら最大評価値を持つ場所を返す
 	//printf("user:%d (x,y)=(%d,%d)\n",flag,bestX,bestY);
-	printf("eva:%d\n",value);
+	//printf("eva:%d\n",value);
 		return bestX+bestY*LEN;
 	} else {
 		// 子ノードならノードの評価値を返す
@@ -465,7 +566,7 @@ int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
 	if (level == SEARCH_LEVEL1) {
 	// ルートノードなら最大評価値を持つ場所を返す
 		//printf("user:%d (x,y)=(%d,%d)\n",flag,bestX,bestY);
-		printf("eval:%d\n",value);
+		//printf("eval:%d\n",value);
 		return bestX+bestY*LEN;
 	} else {
 		// 子ノードならノードの評価値を返す
