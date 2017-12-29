@@ -48,8 +48,8 @@ int main(){
 void Move(){
 	if(offence == 1){
 		if(turn == 1){
-			//PlayerMove();
-			COM1Move();
+			PlayerMove();
+			//COM1Move();
 		}else{
 			COMMove();
 		}
@@ -57,8 +57,8 @@ void Move(){
 		if(turn == 1){
 			COMMove();
 		}else{
-			//PlayerMove();
-			COM1Move();
+			PlayerMove();
+			//COM1Move();
 		}
 	}
 }
