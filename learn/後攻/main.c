@@ -64,7 +64,7 @@ void WriteResult(int val,int* first,int* middle,int* last){
 
 //学習
 int Game(int* a,int* b,int* c){
-	int val=0;
+	int value=0;
 	int i;
 	w_first[0]=a[0];
 	w_first[1]=a[1];
@@ -75,18 +75,20 @@ int Game(int* a,int* b,int* c){
 	w_final[0]=c[0];
 	w_final[1]=c[1];
 	w_final[2]=c[2];
-	for(i=0;i<1;i++){
+	for(i=0;i<100;i++){
 		Init();
+		int val=0;
 		while(available){
 			switch(Judge(turn)){
 			case 0: Move();break;
 			case 1: turn = turn*-1; Move();break;
-			case 2: val += Counter(); break;
+			case 2: val = Counter(); break;
 			default: available = 0;break;
+			}
 		}
-		}
+		value+=val;
 	}
-	return val;
+	return value/100;
 }
 
 //==============main=====================-=====
@@ -129,9 +131,9 @@ int main(){
 	int g,h,i;
 		for(b=0;b<=6;b=b+2){
 			for(c=0;c<=6;c=c+2){
-						for(e=0;e<=20;e=e+2){
-							for(f=0;f<=20;f=f+2){
-											int fi[w_num]={1,0,3};
+						for(e=0;e<=20;e=e+4){
+							for(f=0;f<=20;f=f+4){
+											int fi[w_num]={1,0,0};
 											int mi[w_num]={1,b,c};
 											int la[w_num]={0,e,f};
 											int re = Game(fi,mi,la);
@@ -260,15 +262,15 @@ void Init(){
 }
 
 void DecideTurn(){
-	/*if (c == 'x'){
+	//if (c == 'x'){
 		offence = 1;
 		Player = 1;
 		COM = -1;
-	}else{*/
+	/*}else{
 		offence = 2;
 		Player = -1;
 		COM = 1;
-	//}
+	}*/
 	
 	
 }
@@ -386,26 +388,31 @@ void PlayerMove(){
 //最弱
 void COM1Move(){
 	//printf("コンピュータ1の手 ");
-	int ans_x;
-	int ans_y;
+	int ans_x=-1;
+	int ans_y=-1;
 	int x,y;
 	int i =0;
-	int value=-1000;
+	int num =0;
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
 			if(Check(Player,x,y)==1){
-				if(value<eva_board[y][x]){
-					ans_x = x;
-					ans_y = y;
-					value = eva_board[y][x];
-				}
+					i++;
 			}
 		}
 	}
+	int hand[i];
+	for(x=0;x<LEN;x++){
+		for(y=0;y<LEN;y++){
+			if(Check(Player,x,y)==1){
+				hand[num]=x+y*LEN	;			
+				num++;
+			}
+		}
+	}
+	int rn = rand()%i;
+	ans_x=hand[rn]%LEN;
+	ans_y=hand[rn]/LEN;
 	
-	//int val = AlphaBeta(Board,Player,SEARCH_LEVEL1,-1000,1000);
-	//ans_x = val%LEN;
-	//ans_y = val/LEN;
 	if((ans_x == -1) || ans_y == -1){
 		turn = turn*-1;
 	}else{
