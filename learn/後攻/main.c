@@ -37,6 +37,9 @@ int w_first[w_num]={0,0,0};
 int w_middle[w_num]={0,0,0};
 int w_final[w_num]={0,0,0} ;
 
+//手の回数
+int number = 0;
+
 //reset board
 int reset[8][8] = {
 	{0,0,0,0,0,0,0,0},
@@ -66,6 +69,7 @@ void WriteResult(int val,int* first,int* middle,int* last){
 int Game(int* a,int* b,int* c){
 	int value=0;
 	int i;
+	number = 0;
 	w_first[0]=a[0];
 	w_first[1]=a[1];
 	w_first[2]=a[2];
@@ -79,6 +83,7 @@ int Game(int* a,int* b,int* c){
 		Init();
 		int val=0;
 		while(available){
+
 			switch(Judge(turn)){
 			case 0: Move();break;
 			case 1: turn = turn*-1; Move();break;
@@ -129,17 +134,13 @@ int main(){
 	int a,b,c;
 	int d,e,f;
 	int g,h,i;
-		for(b=0;b<=6;b=b+2){
-			for(c=0;c<=6;c=c+2){
-						for(e=0;e<=20;e=e+4){
-							for(f=0;f<=20;f=f+4){
-											int fi[w_num]={1,0,0};
-											int mi[w_num]={1,b,c};
-											int la[w_num]={0,e,f};
+		for(b=0;b<=10;b=b+2){
+			for(c=0;c<=10;c=c+2){
+											int fi[w_num]={1,b,c};
+											int mi[w_num]={1,2,8};
+											int la[w_num]={0,2,2};
 											int re = Game(fi,mi,la);
 											WriteResult(re,fi,mi,la);
-							}
-						}
 			}	
 		}
 			
@@ -162,6 +163,7 @@ void Move(){
 			COM1Move();
 		}
 	}
+	number++;
 }
 
 //0...自分の手はある
@@ -427,12 +429,13 @@ void COMMove(){
 	//printf("コンピュータの手 ");
 	int ans_x = -1;
 	int ans_y = -1;
-	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-10000,10000);
+	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-10000,10000,number);
 	//int val = MinMax(Board,COM,SEARCH_LEVEL);
 	ans_x = val%LEN;
 	ans_y = val/LEN;
 	ShowAnswer(ans_x,ans_y);
 	Put(COM,ans_x,ans_y);	
+	SetWeight(number);
 	turn = turn*-1;
 	//Display();
 }
@@ -507,18 +510,21 @@ int MinMax(int board[LEN][LEN],int flag,int level){
 }
 
 //===================α-β法============================
-int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
+int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta,int num){
 	// ノードの評価値
 	int value;
-    // 子ノードから伝播してきた評価値
-    int childValue;
-    // 最大の評価値を持つ場所
-    int bestX = -1;
-    int bestY = -1;
-
+	// 子ノードから伝播してきた評価値
+	int childValue;
+  // 最大の評価値を持つ場所
+  int bestX = -1;
+	int bestY = -1;
+	
 	//copy
 	int undo_board[LEN][LEN];
 	int i;
+
+	//weight更新
+	SetWeight(num);
 
 	if(level==0){
 		return Evaluate(board);
@@ -535,7 +541,7 @@ int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
 				if(Check(flag,x,y)==1){
 					for(i=0;i<LEN;i++) memcpy( undo_board[i], board[i], sizeof(int)*LEN );
 					Put(flag,x,y);
-					childValue = AlphaBeta(board,flag*-1, level - 1,alpha,beta);
+					childValue = AlphaBeta(board,flag*-1, level - 1,alpha,beta,num+1);
 					if(flag==Player){
 						if (childValue <= value) {
 							value = childValue;

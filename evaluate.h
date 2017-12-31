@@ -16,8 +16,8 @@ int eva_board[8][8] = {
   {150, -40,  20,   5,   5,  20, -40, 150}
 };
 //[評価関数1~5][着手可能数][取れる数]
-const int w_first[w_num] = {1,0,0};
-const int w_middle[w_num] = {1,6,2};
-const int w_final[w_num] = {0,0,4};
+const int w_first[w_num] = {1,8,6};
+const int w_middle[w_num] = {1,2,8};
+const int w_final[w_num] = {0,2,2};
 
 #endif

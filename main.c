@@ -4,8 +4,10 @@ MoveのCOM1MoveをPlayerMoveにすると変更できる
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "define.h"
 #include "evaluate.h"
+
 
 //初期data
 //player の順番
@@ -28,8 +30,10 @@ int SEARCH_LEVEL = 2;
 int SEARCH_LEVEL1 = 6;
 //moveが行われた数
 int move_cnt;
+
 //weight
 int weight[w_num];
+
 
 //==============main=====================-=====
 int main(){
@@ -146,12 +150,13 @@ void Init(){
 	//x
 	Board[4][3] = 1;
 	Board[3][4] = 1;
+	move_cnt = 0; 
 	Display();
 }
 
 void DecideTurn(){
 	char c;
-	move_cnt = 0; 
+	
 	printf("先行(x)か後攻(o)か選んでください \n");
 	while(1){
 		scanf("%c",&c);
@@ -285,26 +290,31 @@ void PlayerMove(){
 //最弱
 void COM1Move(){
 	printf("コンピュータ1の手 ");
-	int ans_x;
-	int ans_y;
+	int ans_x=-1;
+	int ans_y=-1;
 	int x,y;
 	int i =0;
-	int value=-1000;
+	int num =0;
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
 			if(Check(Player,x,y)==1){
-				if(value<eva_board[y][x]){
-					ans_x = x;
-					ans_y = y;
-					value = eva_board[y][x];
-				}
+					i++;
 			}
 		}
 	}
+	int hand[i];
+	for(x=0;x<LEN;x++){
+		for(y=0;y<LEN;y++){
+			if(Check(Player,x,y)==1){
+				hand[num]=x+y*LEN	;			
+				num++;
+			}
+		}
+	}
+	int rn = rand()%i;
+	ans_x=hand[rn]%LEN;
+	ans_y=hand[rn]/LEN;
 	
-	//int val = AlphaBeta(Board,Player,SEARCH_LEVEL1,-1000,1000);
-	//ans_x = val%LEN;
-	//ans_y = val/LEN;
 	if((ans_x == -1) || ans_y == -1){
 		turn = turn*-1;
 	}else{
@@ -319,7 +329,7 @@ void COMMove(){
 	printf("コンピュータの手 ");
 	int ans_x = -1;
 	int ans_y = -1;
-	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-10000,10000);
+	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-10000,10000,move_cnt);
 	//int val = MinMax(Board,COM,SEARCH_LEVEL);
 	ans_x = val%LEN;
 	ans_y = val/LEN;
@@ -399,7 +409,7 @@ int MinMax(int board[LEN][LEN],int flag,int level){
 }
 
 //===================α-β法============================
-int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
+int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta,int cnt){
 	// ノードの評価値
 	int value;
     // 子ノードから伝播してきた評価値
@@ -408,6 +418,8 @@ int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
     int bestX = -1;
     int bestY = -1;
 
+    //weight更新
+    SetWeight(cnt);
 	//copy
 	int undo_board[LEN][LEN];
 	int i;
@@ -427,7 +439,7 @@ int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta){
 				if(Check(flag,x,y)==1){
 					for(i=0;i<LEN;i++) memcpy( undo_board[i], board[i], sizeof(int)*LEN );
 					Put(flag,x,y);
-					childValue = AlphaBeta(board,flag*-1, level - 1,alpha,beta);
+					childValue = AlphaBeta(board,flag*-1, level - 1,alpha,beta,cnt+1);
 					if(flag==Player){
 						if (childValue <= value) {
 							value = childValue;
