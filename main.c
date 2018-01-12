@@ -1,6 +1,6 @@
 /*
-MoveのCOM1MoveをPlayerMoveにすると変更できる
-*/
+	 MoveのCOM1MoveをPlayerMoveにすると変更できる
+	 */
 
 #include <stdio.h>
 #include <string.h>
@@ -27,12 +27,14 @@ int vec_y[]={1,1,1,0,-1,-1,-1,0};
 //minmax search
 int SEARCH_LEVEL = 2;
 //alphabeta search
-int SEARCH_LEVEL1 = 6;
+int SEARCH_LEVEL1 = 8;
 //moveが行われた数
 int move_cnt;
 
 //weight
 int weight[w_num];
+//最終誤差表示
+char str[30];
 
 
 //==============main=====================-=====
@@ -40,10 +42,15 @@ int main(){
 	Init();
 	while(available){
 		switch(Judge(turn)){
-		case 0: Move();break;
-		case 1: turn = turn*-1; Move();break;
-		case 2: Counter(); break;
-		default: available = 0;break;
+			case 0: Move();break;
+			case 1: turn = turn*-1; Move();break;
+			case 2: Counter(); break;
+			default: available = 0;break;
+		}
+		move_cnt++;
+		if(move_cnt==44){
+			SEARCH_LEVEL1=20;
+			strcpy(str,"最終予想誤差");
 		}
 	}
 	return 0;
@@ -72,7 +79,6 @@ void Move(){
 //2...どちらも出せない
 int Judge(int next_turn){
 	SetWeight(move_cnt);
-	move_cnt++;
 	int x,y;
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
@@ -122,17 +128,17 @@ void Display(){
 		printf("%d",y+1);
 		for(x=0;x<LEN;x++){
 			switch (Board[y][x]){
-			case 0:
-				printf("-");
-				break;
-			case 1:
-				printf("x");
-				break;
-			case -1:
-				printf("o");
-				break;
-			default:
-				printf("N");
+				case 0:
+					printf("-");
+					break;
+				case 1:
+					printf("x");
+					break;
+				case -1:
+					printf("o");
+					break;
+				default:
+					printf("N");
 			}
 		}
 		printf("\n");
@@ -156,7 +162,7 @@ void Init(){
 
 void DecideTurn(){
 	char c;
-	
+
 	printf("先行(x)か後攻(o)か選んでください \n");
 	while(1){
 		scanf("%c",&c);
@@ -298,7 +304,7 @@ void COM1Move(){
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
 			if(Check(Player,x,y)==1){
-					i++;
+				i++;
 			}
 		}
 	}
@@ -314,19 +320,19 @@ void COM1Move(){
 	int rn = rand()%i;
 	ans_x=hand[rn]%LEN;
 	ans_y=hand[rn]/LEN;
-	
+
 	if((ans_x == -1) || ans_y == -1){
 		turn = turn*-1;
 	}else{
-	Put(Player,ans_x,ans_y);
-	ShowAnswer(ans_x,ans_y);
-	turn = turn*-1;
-	Display();
+		Put(Player,ans_x,ans_y);
+		ShowAnswer(ans_x,ans_y);
+		turn = turn*-1;
+		Display();
 	}
 }
 
 void COMMove(){
-	printf("コンピュータの手 ");
+	printf("コンピュータの手 \n");
 	int ans_x = -1;
 	int ans_y = -1;
 	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-10000,10000,move_cnt);
@@ -339,212 +345,111 @@ void COMMove(){
 	Display();
 }
 
-//==============ミニマックス法========================
-int MinMax(int board[LEN][LEN],int flag,int level){
-	// ノードの評価値
-	int value;
-    // 子ノードから伝播してきた評価値
-    int childValue;
-    // ミニマックス法で求めた最大の評価値を持つ場所
-    int bestX = -1;
-    int bestY = -1;
-	
-
-	//copy
-	int undo_board[LEN][LEN];
-	int i;
-
-	if(level==0){
-		return Evaluate(board);
-	}
-	//
-	if(flag==Player){
-		value = 1000;
-	}else{
-		value = -1000;
-	}
-
-	int judge = Judge(flag);
-	int x,y;
-	if(judge==0){
-		for(x=0;x<LEN;x++){
-			for(y=0;y<LEN;y++){
-				if(Check(flag,x,y)==1){
-					for(i=0;i<LEN;i++) memcpy( undo_board[i], board[i], sizeof(int)*LEN );
-					Put(flag,x,y);
-					childValue = MinMax(board,flag*-1, level - 1);
-					if(flag==Player){
-						if (childValue < value) {
-							value = childValue;
-							bestX = x;
-							bestY = y;
-						}
-					}else{
-						if (childValue > value) {
-							value = childValue;
-							bestX = x;
-							bestY = y;
-						}	
-					}
-					for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
-				}
-			}
-		}
-	}else if(judge==1){
-		return value;
-	}else{
-		return value;
-	}
-	turn = flag;
-	if (level == SEARCH_LEVEL) {
-	// ルートノードなら最大評価値を持つ場所を返す
-	//printf("user:%d (x,y)=(%d,%d)\n",flag,bestX,bestY);
-	printf("eva:%d\n",value);
-		return bestX+bestY*LEN;
-	} else {
-		// 子ノードならノードの評価値を返す
-		return value;
-	}
-	
-}
-
 //===================α-β法============================
 int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta,int cnt){
 	// ノードの評価値
 	int value;
-    // 子ノードから伝播してきた評価値
-    int childValue;
-    // 最大の評価値を持つ場所
-    int bestX = -1;
-    int bestY = -1;
+	// 子ノードから伝播してきた評価値
+	int childValue;
+	// 最大の評価値を持つ場所
+	int bestX = -1;
+	int bestY = -1;
 
-    //weight更新
-    SetWeight(cnt);
+	//weight更新
+	SetWeight(cnt);
 	//copy
 	int undo_board[LEN][LEN];
 	int i;
 
+	int x,y;
 	if(level==0){
 		return Evaluate(board);
 	}
-	//
+	if(Judge(flag)==1){
+		flag = flag * -1;
+	}else if(Judge(flag)==2){
+		return Evaluate(board);
+	}
 	if(flag==Player){
 		value = 10000;
 	}else{
 		value = -10000;
 	}
-	int x,y;
-		for(x=0;x<LEN;x++){
-			for(y=0;y<LEN;y++){
-				if(Check(flag,x,y)==1){
-					for(i=0;i<LEN;i++) memcpy( undo_board[i], board[i], sizeof(int)*LEN );
-					Put(flag,x,y);
-					childValue = AlphaBeta(board,flag*-1, level - 1,alpha,beta,cnt+1);
-					if(flag==Player){
-						if (childValue <= value) {
-							value = childValue;
-							//beta更新
-							beta = value;
-							bestX = x;
-							bestY = y;
-						}
-						if(level != SEARCH_LEVEL1){
-							if (value < alpha) {  // αカット
-								// 打つ前に戻す
-								for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
-								return value;
-							}
-						}
-					}else{
-						if (childValue >= value) {
-							value = childValue;
-							alpha = value;
-							bestX = x;
-							bestY = y;
-						}
-						if(level != SEARCH_LEVEL1){
-							if (value > beta) {  // βカット
-								// 打つ前に戻す
-								for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
-								return value;
-							}
+	for(x=0;x<LEN;x++){
+		for(y=0;y<LEN;y++){
+			if(Check(flag,x,y)==1){
+				for(i=0;i<LEN;i++) memcpy( undo_board[i], board[i], sizeof(int)*LEN );
+				Put(flag,x,y);
+				childValue = AlphaBeta(board,flag*-1, level - 1,alpha,beta,cnt+1);
+				if(flag==Player){
+					if (childValue <= value) {
+						value = childValue;
+						//beta更新
+						beta = value;
+						bestX = x;
+						bestY = y;
+					}
+					if(level != SEARCH_LEVEL1){
+						if (value < alpha) {  // αカット
+							// 打つ前に戻す
+							for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
+							return value;
 						}
 					}
-					for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
+				}else{
+					if (childValue >= value) {
+						value = childValue;
+						alpha = value;
+						bestX = x;
+						bestY = y;
+					}
+					if(level != SEARCH_LEVEL1){
+						if (value > beta) {  // βカット
+							// 打つ前に戻す
+							for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
+							return value;
+						}
+					}
 				}
+				for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
 			}
 		}
+	}
 	if (level == SEARCH_LEVEL1) {
-	// ルートノードなら最大評価値を持つ場所を返す
+		// ルートノードなら最大評価値を持つ場所を返す
 		//printf("user:%d (x,y)=(%d,%d)\n",flag,bestX,bestY);
-		printf("eval:%d\n",value);
+		printf("%s eval:%d\n",str,value);
 		return bestX+bestY*LEN;
 	} else {
 		// 子ノードならノードの評価値を返す
 		return value;
 	}
-	
-}
 
-//======================評価関数========================
-/*
-int Evaluate(int board[LEN][LEN]){
-	int x,y;
-	int eva=0;
-	for(x=0;x<LEN;x++){
-		for(y=0;y<LEN;y++){
-			eva += board[y][x]*eva_board[y][x]; 
-		}
-	}	
-	if(COM == 1){
-		return eva;
-	}else{
-		return -eva;
-	}
 }
-*/
-
-/*
-//こっちは駒の個数をどれだけ多く取るかを計算する
-int NumEvaluate(int board[LEN][LEN]){
-	int x,y;
-	int eva=0;
-	for(x=0;x<LEN;x++){
-		for(y=0;y<LEN;y++){
-			eva += board[y][x]; 
-		}
-	}	
-	if(COM == 1){
-		return eva;
-	}else{
-		return -eva;
-	}
-}
-
-*/
 
 
 //こっちは駒の個数をどれだけ多く置けるかを計算する
-//[評価関数][着手可能数][取れる数]
+//[評価関数][着手可能数][最終取れる駒数]
 int Evaluate(int board[LEN][LEN]){
 	int x,y;
 	int eval=0;
-	int can_put = 0;
+	int com = 0; 
+	int player = 0; 
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
 			eval += weight[0]*eva_board[y][x]*board[y][x];
+			if(board[y][x]==COM)com++;
+			if(board[y][x]==Player)player++;
 			if(Check(COM,x,y) == 1){
 				eval += weight[1]*COM;
-				can_put++;
 			}
-			if(Check(Player,x,y) == 1)can_put--;
 		}
 	}	
 	if(COM==1){
-		eval += weight[2]*can_put;
+		eval += weight[2]*(com-player);
 		return eval;
 	}else{
-		eval -= weight[2]*can_put;
+		eval -= weight[2]*(com-player);
 		return -eval;
 	}
 }

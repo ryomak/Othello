@@ -37,8 +37,6 @@ int w_first[w_num]={0,0,0};
 int w_middle[w_num]={0,0,0};
 int w_final[w_num]={0,0,0} ;
 
-//手の回数
-int number = 0;
 
 //reset board
 int reset[8][8] = {
@@ -69,7 +67,7 @@ void WriteResult(int val,int* first,int* middle,int* last){
 int Game(int* a,int* b,int* c){
 	int value=0;
 	int i;
-	number = 0;
+	int num = 20;
 	w_first[0]=a[0];
 	w_first[1]=a[1];
 	w_first[2]=a[2];
@@ -79,56 +77,28 @@ int Game(int* a,int* b,int* c){
 	w_final[0]=c[0];
 	w_final[1]=c[1];
 	w_final[2]=c[2];
-	for(i=0;i<100;i++){
+	for(i=0;i<num;i++){
 		Init();
 		int val=0;
 		while(available){
-
 			switch(Judge(turn)){
 			case 0: Move();break;
 			case 1: turn = turn*-1; Move();break;
 			case 2: val = Counter(); break;
 			default: available = 0;break;
 			}
+			move_cnt++;
+			if(move_cnt==50){
+				SEARCH_LEVEL1=15;
+			}
 		}
 		value+=val;
 	}
-	return value/100;
+	return value/num;
 }
 
 //==============main=====================-=====
-/*
-int main(){
-	int a,b,c;
-	int d,e,f;
-	int g,h,i;
-	for(a=0;a<3;a++){
-		for(b=0;b<=20;b=b+2){
-			for(c=0;c<=20;c=c+2){	
-					for(d=0;d<2;d++){
-						for(e=0;e<=10;e=e+2){
-							for(f=0;f<=10;f=f+2){
-								for(g=1;g<2;g++){
-									for(h=0;h<=10;h=h+2){
-										for(i=0;i<=10;i=i+2){
-											int fi[w_num]={g,h,i};
-											int mi[w_num]={d,e,f};
-											int la[w_num]={a,b,c};
-											int re = Game(fi,mi,la);
-											WriteResult(re,fi,mi,la);
-										}
-									}
-								}
-							}
-						}
-					}
-				}	
-		}
-	}
-			
-	return 0;
-}
-*/
+
 
 int main(){
 	int a,b,c;
@@ -136,11 +106,16 @@ int main(){
 	int g,h,i;
 		for(b=0;b<=10;b=b+2){
 			for(c=0;c<=10;c=c+2){
-											int fi[w_num]={1,b,c};
-											int mi[w_num]={1,2,8};
-											int la[w_num]={0,2,2};
-											int re = Game(fi,mi,la);
-											WriteResult(re,fi,mi,la);
+				for(d=0;d<10;d=d+2){
+					for(e=0;e<=10;e=e+2){
+								int fi[w_num]={1,b,c};
+								int mi[w_num]={1,d,e};
+								int la[w_num]={0,0,1};
+								int re = Game(fi,mi,la);
+								WriteResult(re,fi,mi,la);
+							
+					}
+				}
 			}	
 		}
 			
@@ -163,7 +138,6 @@ void Move(){
 			COM1Move();
 		}
 	}
-	number++;
 }
 
 //0...自分の手はある
@@ -172,7 +146,6 @@ void Move(){
 int Judge(int next_turn){
 	int x,y;
 	SetWeight(move_cnt);
-	move_cnt++;
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
 			if(Check(next_turn,x,y) == 1) return 0;
@@ -248,6 +221,7 @@ void Display(){
 //===========初期化============================
 void Init(){
 	move_cnt=0;
+	SEARCH_LEVEL1=4;
 	int a;
 	int b[w_num]={0,0,0};
 	for(a=0;a<LEN;a++)memcpy(Board[a],reset[a],sizeof(int)*LEN);
@@ -429,224 +403,118 @@ void COMMove(){
 	//printf("コンピュータの手 ");
 	int ans_x = -1;
 	int ans_y = -1;
-	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-10000,10000,number);
-	//int val = MinMax(Board,COM,SEARCH_LEVEL);
+	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-10000,10000,move_cnt);
 	ans_x = val%LEN;
 	ans_y = val/LEN;
 	ShowAnswer(ans_x,ans_y);
-	Put(COM,ans_x,ans_y);	
-	SetWeight(number);
+	Put(COM,ans_x,ans_y);
 	turn = turn*-1;
-	//Display();
-}
-
-//==============ミニマックス法========================
-int MinMax(int board[LEN][LEN],int flag,int level){
-	// ノードの評価値
-	int value;
-    // 子ノードから伝播してきた評価値
-    int childValue;
-    // ミニマックス法で求めた最大の評価値を持つ場所
-    int bestX = -1;
-    int bestY = -1;
-	
-
-	//copy
-	int undo_board[LEN][LEN];
-	int i;
-
-	if(level==0){
-		return Evaluate(board);
-	}
-	//
-	if(flag==Player){
-		value = 1000;
-	}else{
-		value = -1000;
-	}
-
-	int judge = Judge(flag);
-	int x,y;
-	if(judge==0){
-		for(x=0;x<LEN;x++){
-			for(y=0;y<LEN;y++){
-				if(Check(flag,x,y)==1){
-					for(i=0;i<LEN;i++) memcpy( undo_board[i], board[i], sizeof(int)*LEN );
-					Put(flag,x,y);
-					childValue = MinMax(board,flag*-1, level - 1);
-					if(flag==Player){
-						if (childValue < value) {
-							value = childValue;
-							bestX = x;
-							bestY = y;
-						}
-					}else{
-						if (childValue > value) {
-							value = childValue;
-							bestX = x;
-							bestY = y;
-						}	
-					}
-					for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
-				}
-			}
-		}
-	}else if(judge==1){
-		return value;
-	}else{
-		return value;
-	}
-	turn = flag;
-	if (level == SEARCH_LEVEL) {
-	// ルートノードなら最大評価値を持つ場所を返す
-	//printf("user:%d (x,y)=(%d,%d)\n",flag,bestX,bestY);
-	//printf("eva:%d\n",value);
-		return bestX+bestY*LEN;
-	} else {
-		// 子ノードならノードの評価値を返す
-		return value;
-	}
-	
 }
 
 //===================α-β法============================
-int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta,int num){
+int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta,int cnt){
 	// ノードの評価値
 	int value;
 	// 子ノードから伝播してきた評価値
 	int childValue;
-  // 最大の評価値を持つ場所
-  int bestX = -1;
+	// 最大の評価値を持つ場所
+	int bestX = -1;
 	int bestY = -1;
-	
+
+	//weight更新
+	SetWeight(cnt);
 	//copy
 	int undo_board[LEN][LEN];
 	int i;
 
-	//weight更新
-	SetWeight(num);
-
+	int x,y;
 	if(level==0){
 		return Evaluate(board);
 	}
-	//
+	if(Judge(flag)==1){
+		flag = flag * -1;
+	}else if(Judge(flag)==2){
+		return Evaluate(board);
+	}
 	if(flag==Player){
 		value = 10000;
 	}else{
 		value = -10000;
 	}
-	int x,y;
-		for(x=0;x<LEN;x++){
-			for(y=0;y<LEN;y++){
-				if(Check(flag,x,y)==1){
-					for(i=0;i<LEN;i++) memcpy( undo_board[i], board[i], sizeof(int)*LEN );
-					Put(flag,x,y);
-					childValue = AlphaBeta(board,flag*-1, level - 1,alpha,beta,num+1);
-					if(flag==Player){
-						if (childValue <= value) {
-							value = childValue;
-							//beta更新
-							beta = value;
-							bestX = x;
-							bestY = y;
-						}
-						if(level != SEARCH_LEVEL1){
-							if (value < alpha) {  // αカット
-								// 打つ前に戻す
-								for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
-								return value;
-							}
-						}
-					}else{
-						if (childValue >= value) {
-							value = childValue;
-							alpha = value;
-							bestX = x;
-							bestY = y;
-						}
-						if(level != SEARCH_LEVEL1){
-							if (value > beta) {  // βカット
-								// 打つ前に戻す
-								for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
-								return value;
-							}
+	for(x=0;x<LEN;x++){
+		for(y=0;y<LEN;y++){
+			if(Check(flag,x,y)==1){
+				for(i=0;i<LEN;i++) memcpy( undo_board[i], board[i], sizeof(int)*LEN );
+				Put(flag,x,y);
+				childValue = AlphaBeta(board,flag*-1, level - 1,alpha,beta,cnt+1);
+				if(flag==Player){
+					if (childValue <= value) {
+						value = childValue;
+						//beta更新
+						beta = value;
+						bestX = x;
+						bestY = y;
+					}
+					if(level != SEARCH_LEVEL1){
+						if (value < alpha) {  // αカット
+							// 打つ前に戻す
+							for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
+							return value;
 						}
 					}
-					for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
+				}else{
+					if (childValue >= value) {
+						value = childValue;
+						alpha = value;
+						bestX = x;
+						bestY = y;
+					}
+					if(level != SEARCH_LEVEL1){
+						if (value > beta) {  // βカット
+							// 打つ前に戻す
+							for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
+							return value;
+						}
+					}
 				}
+				for(i=0;i<LEN;i++) memcpy( board[i], undo_board[i], sizeof(int)*LEN );
 			}
 		}
+	}
 	if (level == SEARCH_LEVEL1) {
-	// ルートノードなら最大評価値を持つ場所を返す
+		// ルートノードなら最大評価値を持つ場所を返す
 		//printf("user:%d (x,y)=(%d,%d)\n",flag,bestX,bestY);
-		//printf("eval:%d\n",value);
 		return bestX+bestY*LEN;
+
 	} else {
 		// 子ノードならノードの評価値を返す
 		return value;
 	}
-	
+
 }
-
-//======================評価関数========================
-/*
-int Evaluate(int board[LEN][LEN]){
-	int x,y;
-	int eva=0;
-	for(x=0;x<LEN;x++){
-		for(y=0;y<LEN;y++){
-			eva += board[y][x]*eva_board[y][x]; 
-		}
-	}	
-	if(COM == 1){
-		return eva;
-	}else{
-		return -eva;
-	}
-}
-*/
-
-/*
-//こっちは駒の個数をどれだけ多く取るかを計算する
-int NumEvaluate(int board[LEN][LEN]){
-	int x,y;
-	int eva=0;
-	for(x=0;x<LEN;x++){
-		for(y=0;y<LEN;y++){
-			eva += board[y][x]; 
-		}
-	}	
-	if(COM == 1){
-		return eva;
-	}else{
-		return -eva;
-	}
-}
-
-*/
-
 
 //こっちは駒の個数をどれだけ多く置けるかを計算する
-//[評価関数][着手可能数][取れる数]
+//[評価関数][着手可能数][最終取れる駒数]
 int Evaluate(int board[LEN][LEN]){
 	int x,y;
 	int eval=0;
-	int can_put = 0;
+	int com = 0; 
+	int player = 0; 
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
 			eval += weight[0]*eva_board[y][x]*board[y][x];
+			if(board[y][x]==COM)com++;
+			if(board[y][x]==Player)player++;
 			if(Check(COM,x,y) == 1){
 				eval += weight[1]*COM;
-				can_put++;
 			}
-			if(Check(Player,x,y) == 1)can_put--;
 		}
 	}	
 	if(COM==1){
-		eval += weight[2]*can_put;
+		eval += weight[2]*(com-player);
 		return eval;
 	}else{
-		eval -= weight[2]*can_put;
+		eval -= weight[2]*(com-player);
 		return -eval;
 	}
 }
