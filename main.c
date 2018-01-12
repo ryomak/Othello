@@ -27,7 +27,7 @@ int vec_y[]={1,1,1,0,-1,-1,-1,0};
 //minmax search
 int SEARCH_LEVEL = 2;
 //alphabeta search
-int SEARCH_LEVEL1 = 8;
+int SEARCH_LEVEL1 = 6;
 //moveが行われた数
 int move_cnt;
 
@@ -41,17 +41,19 @@ char str[30];
 int main(){
 	Init();
 	while(available){
+		if(move_cnt==FINAL){
+			SEARCH_LEVEL1=60-FINAL;
+			strcpy(str,"最終予想誤差");
+		}
+		SetWeight(move_cnt++);
+
 		switch(Judge(turn)){
 			case 0: Move();break;
 			case 1: turn = turn*-1; Move();break;
 			case 2: Counter(); break;
 			default: available = 0;break;
 		}
-		move_cnt++;
-		if(move_cnt==44){
-			SEARCH_LEVEL1=20;
-			strcpy(str,"最終予想誤差");
-		}
+
 	}
 	return 0;
 }
@@ -59,8 +61,8 @@ int main(){
 void Move(){
 	if(offence == 1){
 		if(turn == 1){
-			PlayerMove();
-			//COM1Move();
+			//PlayerMove();
+			COM1Move();
 		}else{
 			COMMove();
 		}
@@ -68,8 +70,8 @@ void Move(){
 		if(turn == 1){
 			COMMove();
 		}else{
-			PlayerMove();
-			//COM1Move();
+			//PlayerMove();
+			COM1Move();
 		}
 	}
 }
@@ -78,7 +80,6 @@ void Move(){
 //1...相手は出せる
 //2...どちらも出せない
 int Judge(int next_turn){
-	SetWeight(move_cnt);
 	int x,y;
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
@@ -336,7 +337,6 @@ void COMMove(){
 	int ans_x = -1;
 	int ans_y = -1;
 	int val = AlphaBeta(Board,COM,SEARCH_LEVEL1,-10000,10000,move_cnt);
-	//int val = MinMax(Board,COM,SEARCH_LEVEL);
 	ans_x = val%LEN;
 	ans_y = val/LEN;
 	ShowAnswer(ans_x,ans_y);

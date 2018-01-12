@@ -3,7 +3,7 @@
 #define w_num 3
 #define FIRST 1
 #define MIDDLE 25
-#define FINAL 44
+#define FINAL 45
 
 int eva_board[8][8] = {
   {50, -12,  0,   -1,  -1,  0, -12,  50},
