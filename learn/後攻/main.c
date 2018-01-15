@@ -5,6 +5,7 @@ MoveのCOM1MoveをPlayerMoveにすると変更できる
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "define.h"
 #include "evaluate.h"
 
@@ -88,8 +89,8 @@ int Game(int* a,int* b,int* c){
 			default: available = 0;break;
 			}
 			move_cnt++;
-			if(move_cnt==50){
-				SEARCH_LEVEL1=15;
+			if(move_cnt==FINAL){
+				SEARCH_LEVEL1=60-FINAL;
 			}
 		}
 		value+=val;
@@ -108,8 +109,8 @@ int main(){
 			for(c=0;c<=10;c=c+2){
 				for(d=0;d<10;d=d+2){
 					for(e=0;e<=10;e=e+2){
-								int fi[w_num]={1,b,c};
-								int mi[w_num]={1,d,e};
+								int fi[w_num]={1,0,8};
+								int mi[w_num]={1,2,6};
 								int la[w_num]={0,0,1};
 								int re = Game(fi,mi,la);
 								WriteResult(re,fi,mi,la);
@@ -385,6 +386,7 @@ void COM1Move(){
 			}
 		}
 	}
+	srand((unsigned int)time(NULL));
 	int rn = rand()%i;
 	ans_x=hand[rn]%LEN;
 	ans_y=hand[rn]/LEN;
