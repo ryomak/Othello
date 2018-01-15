@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "define.h"
 #include "evaluate.h"
 
@@ -27,7 +28,7 @@ int vec_y[]={1,1,1,0,-1,-1,-1,0};
 //minmax search
 int SEARCH_LEVEL = 2;
 //alphabeta search
-int SEARCH_LEVEL1 = 6;
+int SEARCH_LEVEL1 =6;
 //moveが行われた数
 int move_cnt;
 
@@ -318,6 +319,7 @@ void COM1Move(){
 			}
 		}
 	}
+	srand((unsigned int)time(NULL));
 	int rn = rand()%i;
 	ans_x=hand[rn]%LEN;
 	ans_y=hand[rn]/LEN;
