@@ -62,8 +62,8 @@ int main(){
 void Move(){
 	if(offence == 1){
 		if(turn == 1){
-			//PlayerMove();
-			COM1Move();
+			PlayerMove();
+			//COM1Move();
 		}else{
 			COMMove();
 		}
@@ -71,8 +71,8 @@ void Move(){
 		if(turn == 1){
 			COMMove();
 		}else{
-			//PlayerMove();
-			COM1Move();
+			PlayerMove();
+			//COM1Move();
 		}
 	}
 }
@@ -158,7 +158,7 @@ void Init(){
 	//x
 	Board[4][3] = 1;
 	Board[3][4] = 1;
-	move_cnt = 0; 
+	move_cnt = 0;
 	Display();
 }
 
@@ -166,6 +166,7 @@ void DecideTurn(){
 	char c;
 
 	printf("先行(x)か後攻(o)か選んでください \n");
+	printf("例: 3,a \n");
 	while(1){
 		scanf("%c",&c);
 		if ((c == 'x') || (c == 'o')){
@@ -275,7 +276,7 @@ void Flip(int next_turn,int x,int y,int vec){
 		Board[y][x] = next_turn;
 	}
 }
-//=========playe===========r============
+//=========player===========r============
 void PlayerMove(){
 	while(1){
 		printf("石を置く場所を指定してください ");
@@ -314,7 +315,7 @@ void COM1Move(){
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
 			if(Check(Player,x,y)==1){
-				hand[num]=x+y*LEN	;			
+				hand[num]=x+y*LEN	;
 				num++;
 			}
 		}
@@ -342,7 +343,7 @@ void COMMove(){
 	ans_x = val%LEN;
 	ans_y = val/LEN;
 	ShowAnswer(ans_x,ans_y);
-	Put(COM,ans_x,ans_y);	
+	Put(COM,ans_x,ans_y);
 	turn = turn*-1;
 	Display();
 }
@@ -435,8 +436,8 @@ int AlphaBeta(int board[LEN][LEN],int flag,int level,int alpha,int beta,int cnt)
 int Evaluate(int board[LEN][LEN]){
 	int x,y;
 	int eval=0;
-	int com = 0; 
-	int player = 0; 
+	int com = 0;
+	int player = 0;
 	for(x=0;x<LEN;x++){
 		for(y=0;y<LEN;y++){
 			eval += weight[0]*eva_board[y][x]*board[y][x];
@@ -446,7 +447,7 @@ int Evaluate(int board[LEN][LEN]){
 				eval += weight[1]*COM;
 			}
 		}
-	}	
+	}
 	if(COM==1){
 		eval += weight[2]*(com-player);
 		return eval;
