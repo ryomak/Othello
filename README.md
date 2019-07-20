@@ -20,3 +20,6 @@ PLAYER vs COM
 COMvsCOM
 
 まだエラーあったら連絡ください
+
+## Lisence
+MIT
