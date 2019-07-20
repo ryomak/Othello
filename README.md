@@ -21,5 +21,5 @@ COMvsCOM
 
 まだエラーあったら連絡ください
 
-## Lisence
+## Licence
 MIT
